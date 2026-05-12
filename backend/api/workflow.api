@@ -1,0 +1,210 @@
+syntax = "v1"
+
+info (
+	title:   "Zilo Workflow API"
+	desc:    "Auth + Workflow + Execution APIs"
+	author:  "zpp"
+	email:   "dev@zilo.local"
+	version: "v1"
+)
+
+type RegisterReq {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	Nickname string `json:"nickname,optional"`
+}
+
+type RegisterResp {
+	UserId int64  `json:"userId"`
+	Email  string `json:"email"`
+}
+
+type LoginReq {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type LoginResp {
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
+	ExpireAt     int64  `json:"expireAt"`
+}
+
+type RefreshTokenReq {
+	RefreshToken string `json:"refreshToken"`
+}
+
+type RefreshTokenResp {
+	AccessToken string `json:"accessToken"`
+	ExpireAt    int64  `json:"expireAt"`
+}
+
+type MeResp {
+	UserId   int64  `json:"userId"`
+	Email    string `json:"email"`
+	Nickname string `json:"nickname"`
+}
+
+type CreateWorkflowReq {
+	Name        string `json:"name"`
+	Description string `json:"description,optional"`
+}
+
+type WorkflowResp {
+	Id            int64  `json:"id"`
+	Name          string `json:"name"`
+	Description   string `json:"description"`
+	Status        int64  `json:"status"`
+	LatestVersion int64  `json:"latestVersion"`
+	CreatedAt     string `json:"createdAt"`
+	UpdatedAt     string `json:"updatedAt"`
+}
+
+type ListWorkflowsReq {
+	Page     int64  `form:"page,optional"`
+	PageSize int64  `form:"pageSize,optional"`
+	Keyword  string `form:"keyword,optional"`
+}
+
+type ListWorkflowsResp {
+	Total int64          `json:"total"`
+	List  []WorkflowResp `json:"list"`
+}
+
+type UpdateWorkflowReq {
+	Name        string `json:"name,optional"`
+	Description string `json:"description,optional"`
+}
+
+type SaveDraftReq {
+	DslJson string `json:"dslJson"`
+}
+
+type PublishReq {
+	Note string `json:"note,optional"`
+}
+
+type PublishResp {
+	Version int64 `json:"version"`
+}
+
+type VersionItem {
+	Id          int64  `json:"id"`
+	Version     int64  `json:"version"`
+	IsPublished bool   `json:"isPublished"`
+	CreatedAt   string `json:"createdAt"`
+}
+
+type VersionsResp {
+	List []VersionItem `json:"list"`
+}
+
+type ExecuteReq {
+	InputJson string `json:"inputJson,optional"`
+}
+
+type ExecuteResp {
+	ExecutionId int64  `json:"executionId"`
+	Status      string `json:"status"`
+}
+
+type ExecutionResp {
+	Id         int64  `json:"id"`
+	WorkflowId int64  `json:"workflowId"`
+	VersionId  int64  `json:"versionId"`
+	Status     string `json:"status"`
+	InputJson  string `json:"inputJson"`
+	OutputJson string `json:"outputJson"`
+	ErrorMsg   string `json:"errorMsg"`
+	StartedAt  string `json:"startedAt"`
+	EndedAt    string `json:"endedAt"`
+	DurationMs int64  `json:"durationMs"`
+}
+
+type ExecutionLogItem {
+	NodeId     string `json:"nodeId"`
+	NodeType   string `json:"nodeType"`
+	Status     string `json:"status"`
+	InputJson  string `json:"inputJson"`
+	OutputJson string `json:"outputJson"`
+	ErrorMsg   string `json:"errorMsg"`
+	StartedAt  string `json:"startedAt"`
+	EndedAt    string `json:"endedAt"`
+	DurationMs int64  `json:"durationMs"`
+}
+
+type ExecutionLogsResp {
+	List []ExecutionLogItem `json:"list"`
+}
+
+@server (
+	group:  auth
+	prefix: /api/v1/auth
+)
+service workflow-api {
+	@handler Register
+	post /register (RegisterReq) returns (RegisterResp)
+
+	@handler Login
+	post /login (LoginReq) returns (LoginResp)
+
+	@handler RefreshToken
+	post /refresh (RefreshTokenReq) returns (RefreshTokenResp)
+}
+
+@server (
+	jwt:    Auth
+	group:  auth
+	prefix: /api/v1/auth
+)
+service workflow-api {
+	@handler Me
+	get /me returns (MeResp)
+}
+
+@server (
+	jwt:    Auth
+	group:  workflows
+	prefix: /api/v1
+)
+service workflow-api {
+	@handler CreateWorkflow
+	post /workflows (CreateWorkflowReq) returns (WorkflowResp)
+
+	@handler ListWorkflows
+	get /workflows (ListWorkflowsReq) returns (ListWorkflowsResp)
+
+	@handler GetWorkflow
+	get /workflows/:id returns (WorkflowResp)
+
+	@handler UpdateWorkflow
+	put /workflows/:id (UpdateWorkflowReq) returns (WorkflowResp)
+
+	@handler DeleteWorkflow
+	delete /workflows/:id
+
+	@handler SaveWorkflowDraft
+	post /workflows/:id/draft (SaveDraftReq)
+
+	@handler PublishWorkflow
+	post /workflows/:id/publish (PublishReq) returns (PublishResp)
+
+	@handler ListWorkflowVersions
+	get /workflows/:id/versions returns (VersionsResp)
+
+	@handler RollbackWorkflowVersion
+	post /workflows/:id/rollback/:version
+
+	@handler ExecuteWorkflow
+	post /workflows/:id/execute (ExecuteReq) returns (ExecuteResp)
+
+	@handler DebugWorkflow
+	post /workflows/:id/debug (ExecuteReq) returns (ExecuteResp)
+
+	@handler GetExecution
+	get /executions/:executionId returns (ExecutionResp)
+
+	@handler GetExecutionLogs
+	get /executions/:executionId/logs returns (ExecutionLogsResp)
+}
+

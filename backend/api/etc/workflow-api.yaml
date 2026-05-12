@@ -1,0 +1,20 @@
+Name: workflow-api
+Host: 0.0.0.0
+Port: 8888
+Mode: dev
+Timeout: 10000
+
+WorkflowRpc:
+  Endpoints:
+    - 127.0.0.1:8080
+
+Log:
+  ServiceName: workflow-api
+  Mode: console
+  Encoding: json
+  Level: info
+
+Auth:
+  AccessSecret: "replace_with_a_strong_secret"
+  AccessExpire: 7200
+  RefreshExpire: 604800

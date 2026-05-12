@@ -1,0 +1,16 @@
+Name: workflow.rpc
+ListenOn: 0.0.0.0:8080
+
+Mysql:
+  DataSource: "root:replace_me@tcp(127.0.0.1:3306)/zilo_workflow?charset=utf8mb4&parseTime=True&loc=Local"
+
+Auth:
+  AccessSecret: "replace_with_a_strong_secret"
+  AccessExpire: 7200
+  RefreshExpire: 604800
+
+LLM:
+  Provider: openai
+  BaseURL: https://api.openai.com/v1
+  APIKey: replace_me
+  DefaultModel: gpt-4o-mini

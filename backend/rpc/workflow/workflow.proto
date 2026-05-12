@@ -1,0 +1,194 @@
+syntax = "proto3";
+
+package workflow;
+
+option go_package = "./workflowpb";
+
+message RegisterReq {
+  string email = 1;
+  string password = 2;
+  string nickname = 3;
+}
+
+message RegisterResp {
+  int64 userId = 1;
+  string email = 2;
+}
+
+message LoginReq {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginResp {
+  string accessToken = 1;
+  string refreshToken = 2;
+  int64 expireAt = 3;
+}
+
+message RefreshTokenReq {
+  string refreshToken = 1;
+}
+
+message RefreshTokenResp {
+  string accessToken = 1;
+  int64 expireAt = 2;
+}
+
+message MeReq {
+  int64 userId = 1;
+}
+
+message MeResp {
+  int64 userId = 1;
+  string email = 2;
+  string nickname = 3;
+}
+
+message CreateWorkflowReq {
+  int64 userId = 1;
+  string name = 2;
+  string description = 3;
+}
+
+message WorkflowResp {
+  int64 id = 1;
+  string name = 2;
+  string description = 3;
+  int64 status = 4;
+  int64 latestVersion = 5;
+  string createdAt = 6;
+  string updatedAt = 7;
+}
+
+message ListWorkflowsReq {
+  int64 userId = 1;
+  int64 page = 2;
+  int64 pageSize = 3;
+  string keyword = 4;
+}
+
+message ListWorkflowsResp {
+  int64 total = 1;
+  repeated WorkflowResp list = 2;
+}
+
+message WorkflowByIdReq {
+  int64 userId = 1;
+  int64 workflowId = 2;
+}
+
+message UpdateWorkflowReq {
+  int64 userId = 1;
+  int64 workflowId = 2;
+  string name = 3;
+  string description = 4;
+}
+
+message Empty {}
+
+message SaveDraftReq {
+  int64 userId = 1;
+  int64 workflowId = 2;
+  string dslJson = 3;
+}
+
+message PublishReq {
+  int64 userId = 1;
+  int64 workflowId = 2;
+  string note = 3;
+}
+
+message PublishResp {
+  int64 version = 1;
+}
+
+message ListVersionsReq {
+  int64 userId = 1;
+  int64 workflowId = 2;
+}
+
+message VersionItem {
+  int64 id = 1;
+  int64 version = 2;
+  bool isPublished = 3;
+  string createdAt = 4;
+}
+
+message ListVersionsResp {
+  repeated VersionItem list = 1;
+}
+
+message RollbackReq {
+  int64 userId = 1;
+  int64 workflowId = 2;
+  int64 version = 3;
+}
+
+message ExecuteReq {
+  int64 userId = 1;
+  int64 workflowId = 2;
+  string inputJson = 3;
+}
+
+message ExecuteResp {
+  int64 executionId = 1;
+  string status = 2;
+}
+
+message ExecutionReq {
+  int64 userId = 1;
+  int64 executionId = 2;
+}
+
+message ExecutionResp {
+  int64 id = 1;
+  int64 workflowId = 2;
+  int64 versionId = 3;
+  string status = 4;
+  string inputJson = 5;
+  string outputJson = 6;
+  string errorMsg = 7;
+  string startedAt = 8;
+  string endedAt = 9;
+  int64 durationMs = 10;
+}
+
+message ExecutionLogItem {
+  string nodeId = 1;
+  string nodeType = 2;
+  string status = 3;
+  string inputJson = 4;
+  string outputJson = 5;
+  string errorMsg = 6;
+  string startedAt = 7;
+  string endedAt = 8;
+  int64 durationMs = 9;
+}
+
+message ExecutionLogsResp {
+  repeated ExecutionLogItem list = 1;
+}
+
+service WorkflowRpc {
+  rpc Register(RegisterReq) returns (RegisterResp);
+  rpc Login(LoginReq) returns (LoginResp);
+  rpc RefreshToken(RefreshTokenReq) returns (RefreshTokenResp);
+  rpc Me(MeReq) returns (MeResp);
+
+  rpc CreateWorkflow(CreateWorkflowReq) returns (WorkflowResp);
+  rpc ListWorkflows(ListWorkflowsReq) returns (ListWorkflowsResp);
+  rpc GetWorkflow(WorkflowByIdReq) returns (WorkflowResp);
+  rpc UpdateWorkflow(UpdateWorkflowReq) returns (WorkflowResp);
+  rpc DeleteWorkflow(WorkflowByIdReq) returns (Empty);
+  rpc SaveWorkflowDraft(SaveDraftReq) returns (Empty);
+  rpc PublishWorkflow(PublishReq) returns (PublishResp);
+  rpc ListWorkflowVersions(ListVersionsReq) returns (ListVersionsResp);
+  rpc RollbackWorkflowVersion(RollbackReq) returns (Empty);
+
+  rpc ExecuteWorkflow(ExecuteReq) returns (ExecuteResp);
+  rpc DebugWorkflow(ExecuteReq) returns (ExecuteResp);
+  rpc GetExecution(ExecutionReq) returns (ExecutionResp);
+  rpc GetExecutionLogs(ExecutionReq) returns (ExecutionLogsResp);
+}
+
